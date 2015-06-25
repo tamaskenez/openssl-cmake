@@ -34,23 +34,31 @@ if( WIN32 AND NOT CYGWIN )
   add_definitions( -DWIN32_LEAN_AND_MEAN )
 
   # avoid conflict: ocsp.h and wincrypt.h
-  add_definitions( -D_WINDLL )
-
+  if (BUILD_SHARED_LIBS)
+    add_definitions( -D_WINDLL )
+  endif()
 endif ( )
 
 if( MINGW )
   set( CMAKE_SHARED_LINKER_FLAGS "-Wl,--export-all" )
 endif()
 
+set(CMAKE_DEBUG_POSTFIX _d)
+
 add_subdirectory( crypto )
 add_subdirectory( ssl )
-add_subdirectory( apps )
+if (NOT IOS)
+  add_subdirectory( apps )
+endif()
 
 install( FILES e_os2.h DESTINATION include/openssl )
 
 install( FILES tools/c_hash tools/c_info tools/c_issuer tools/c_name tools/c_rehash
     FAQ LICENSE PROBLEMS README README.ASN1 README.ENGINE
     DESTINATION share/openssl )
+
+configure_file(${CMAKE_CURRENT_LIST_DIR}/OpenSSLConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/OpenSSLConfig.cmake @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/OpenSSLConfig.cmake DESTINATION lib/OpenSSL)
 
 install( DIRECTORY doc DESTINATION ./ )
 
